@@ -42,3 +42,9 @@ and Real Recordings, ring a test chime, or quit.
 ```bash
 pytest
 ```
+
+## License
+
+Code is MIT-licensed (see `LICENSE`). Bundled audio and icon assets are
+third-party public-domain/CC-BY works with their own attribution — see
+`sounds/NOTICE.md` and `bosun/resources/NOTICE.md`.
