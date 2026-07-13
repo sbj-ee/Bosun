@@ -3,13 +3,16 @@
 import sys
 from datetime import datetime, timedelta
 from enum import Enum, auto
+from pathlib import Path
 
 from PySide6.QtCore import QTimer
-from PySide6.QtGui import QAction, QActionGroup, QColor, QIcon, QPainter, QPixmap
+from PySide6.QtGui import QAction, QActionGroup, QIcon
 from PySide6.QtWidgets import QApplication, QMenu, QSystemTrayIcon
 
 from .player import ring_bells, ring_whistle
 from .watch import bell_count, last_half_hour_mark, watch_name
+
+_ICON_PATH = Path(__file__).resolve().parent / "resources" / "uss_wisconsin_bb64_crest.png"
 
 
 class ChimeMode(Enum):
@@ -18,16 +21,7 @@ class ChimeMode(Enum):
 
 
 def _build_icon() -> QIcon:
-    pixmap = QPixmap(64, 64)
-    pixmap.fill(QColor(0, 0, 0, 0))
-    painter = QPainter(pixmap)
-    painter.setRenderHint(QPainter.Antialiasing)
-    painter.setBrush(QColor(205, 164, 52))  # brass
-    painter.setPen(QColor(90, 70, 20))
-    painter.drawEllipse(8, 16, 48, 40)
-    painter.drawRect(28, 4, 8, 14)
-    painter.end()
-    return QIcon(pixmap)
+    return QIcon(str(_ICON_PATH))
 
 
 class BosunTrayApp:
