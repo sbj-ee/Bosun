@@ -37,6 +37,7 @@ class BosunTrayApp:
 
         self.enabled = True
         self.mode = ChimeMode.SHIPS_BELLS
+        self.use_real_audio = False
 
         self.tray = QSystemTrayIcon(_build_icon())
         self.tray.setToolTip("Bosun")
@@ -61,6 +62,21 @@ class BosunTrayApp:
         self.whistle_action.triggered.connect(lambda: self._on_select_mode(ChimeMode.HOURLY_WHISTLE))
         mode_group.addAction(self.whistle_action)
         menu.addAction(self.whistle_action)
+
+        menu.addSeparator()
+
+        audio_group = QActionGroup(menu)
+        audio_group.setExclusive(True)
+
+        self.synth_audio_action = QAction("Synthesized Audio", checkable=True, checked=True)
+        self.synth_audio_action.triggered.connect(lambda: self._on_select_audio_source(False))
+        audio_group.addAction(self.synth_audio_action)
+        menu.addAction(self.synth_audio_action)
+
+        self.real_audio_action = QAction("Real Recordings (Navy Band / Ship's Bell)", checkable=True)
+        self.real_audio_action.triggered.connect(lambda: self._on_select_audio_source(True))
+        audio_group.addAction(self.real_audio_action)
+        menu.addAction(self.real_audio_action)
 
         menu.addSeparator()
 
@@ -89,16 +105,19 @@ class BosunTrayApp:
         self.mode = mode
         self._schedule_next()
 
+    def _on_select_audio_source(self, use_real: bool) -> None:
+        self.use_real_audio = use_real
+
     def _ring_test(self) -> None:
         self._strike(last_half_hour_mark(datetime.now()))
 
     def _strike(self, mark: datetime) -> None:
         if self.mode == ChimeMode.SHIPS_BELLS:
             count = bell_count(mark)
-            ring_bells(count)
+            ring_bells(count, use_real=self.use_real_audio)
             self.tray.setToolTip(f"Bosun — {watch_name(mark)}, {count} bell(s)")
         else:
-            ring_whistle()
+            ring_whistle(use_real=self.use_real_audio)
             self.tray.setToolTip(f"Bosun — {mark.strftime('%H:%M')} whistle")
 
     def _schedule_next(self) -> None:
