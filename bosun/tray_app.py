@@ -74,15 +74,15 @@ class BosunTrayApp:
 
         menu.addSeparator()
 
-        test_action = QAction("Ring Now (test)")
-        test_action.triggered.connect(self._ring_test)
-        menu.addAction(test_action)
+        self.test_action = QAction("Ring Now (test)")
+        self.test_action.triggered.connect(self._ring_test)
+        menu.addAction(self.test_action)
 
         menu.addSeparator()
 
-        quit_action = QAction("Quit")
-        quit_action.triggered.connect(self.app.quit)
-        menu.addAction(quit_action)
+        self.quit_action = QAction("Quit")
+        self.quit_action.triggered.connect(self.app.quit)
+        menu.addAction(self.quit_action)
 
         self.tray.setContextMenu(menu)
         self.tray.show()
