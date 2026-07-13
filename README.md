@@ -1,5 +1,7 @@
 # Bosun
 
+<img src="bosun/resources/uss_wisconsin_bb64_crest.png" alt="USS Wisconsin (BB-64) crest" width="120" align="right">
+
 A system tray app that chimes on the hour like a U.S. Navy ship, with two
 selectable modes:
 
