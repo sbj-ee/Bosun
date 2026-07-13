@@ -36,7 +36,7 @@ class BosunTrayApp:
         self.tray = QSystemTrayIcon(_build_icon())
         self.tray.setToolTip("Bosun")
 
-        menu = QMenu()
+        menu = self.menu = QMenu()
 
         self.enabled_action = QAction("Chiming Enabled", checkable=True, checked=True)
         self.enabled_action.toggled.connect(self._on_toggle_enabled)
