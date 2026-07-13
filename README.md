@@ -37,6 +37,11 @@ This launches a tray icon. Right-click it to toggle chiming on/off, switch
 between Ship's Bells and Hourly Whistle, switch between Synthesized Audio
 and Real Recordings, ring a test chime, or quit.
 
+On Linux, `main.py` forces Qt onto XWayland (`QT_QPA_PLATFORM=xcb`) rather
+than native Wayland. Qt's native Wayland backend has incomplete
+`QSystemTrayIcon` support on several compositors (GNOME, COSMIC), which can
+leave the tray icon visible but its right-click menu empty or unresponsive.
+
 ## Tests
 
 ```bash
