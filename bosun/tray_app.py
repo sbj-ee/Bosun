@@ -127,7 +127,7 @@ class BosunTrayApp:
 
     def _on_tick(self) -> None:
         if self.enabled:
-            self._strike(datetime.now())
+            self._strike(last_half_hour_mark(datetime.now()))
         self._schedule_next()
 
     def run(self) -> int:
