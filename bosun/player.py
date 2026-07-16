@@ -18,6 +18,19 @@ from .synth import SAMPLE_RATE, bell_sequence, whistle_blast
 SOUNDS_DIR = Path(__file__).resolve().parent.parent / "sounds"
 
 
+def _refresh_default_device() -> None:
+    """Forces PortAudio to re-scan host devices before playback.
+
+    PortAudio caches its device list (and which one is "default") at
+    initialization. Desktop sound settings that change the default output
+    after that point -- e.g. switching outputs in COSMIC's audio quick
+    settings -- otherwise never get picked up for the life of the process,
+    so playback keeps going to a stale device.
+    """
+    sd._terminate()
+    sd._initialize()
+
+
 def _load_wav(path: Path) -> tuple[np.ndarray, int]:
     with wave.open(str(path), "rb") as wf:
         sample_rate = wf.getframerate()
@@ -37,6 +50,7 @@ def real_whistle_path() -> Path | None:
 
 
 def ring_bells(count: int, use_real: bool = False) -> None:
+    _refresh_default_device()
     path = real_bell_path(count) if use_real else None
     if path is not None:
         samples, sample_rate = _load_wav(path)
@@ -46,6 +60,7 @@ def ring_bells(count: int, use_real: bool = False) -> None:
 
 
 def ring_whistle(use_real: bool = False) -> None:
+    _refresh_default_device()
     path = real_whistle_path() if use_real else None
     if path is not None:
         samples, sample_rate = _load_wav(path)

@@ -12,7 +12,7 @@ from PySide6.QtWidgets import QApplication, QMenu, QSystemTrayIcon
 from .player import ring_bells, ring_whistle
 from .watch import bell_count, last_half_hour_mark, watch_name
 
-_ICON_PATH = Path(__file__).resolve().parent / "resources" / "uss_wisconsin_bb64_crest.png"
+_ICON_PATH = Path(__file__).resolve().parent / "resources" / "uss_wisconsin_bb64_crest_tray.png"
 
 
 class ChimeMode(Enum):
