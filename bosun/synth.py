@@ -22,10 +22,29 @@ _STRIKE_RELEASE = 0.4    # tail of the strike eased down to silence, avoiding a 
 _PAIR_GAP = 0.28          # gap between the two dings within a pair
 _GROUP_GAP = 0.55         # gap between pairs (or before a trailing single)
 
-_WHISTLE_FREQ_HZ = 2200.0     # bosun's pipe base pitch (high and piercing)
-_WHISTLE_TRILL_HZ = 18.0      # trill/vibrato rate
-_WHISTLE_TRILL_DEPTH_HZ = 220.0
-_WHISTLE_DURATION = 1.2
+# Modeled on sounds/whistle.wav (a real boatswain's-pipe call): a near-pure
+# tone -- harmonics measured 40+ dB down -- shaped as steady high note,
+# rising warbled trill, steady lower note, then a quick swoop into the cutoff.
+# Breakpoints are (time-seconds, frequency-Hz, gain) pairs, linearly
+# interpolated; frequency and gain were read off the recording's spectrogram.
+_WHISTLE_TRILL_START = 2.45
+_WHISTLE_TRILL_END = 4.30
+_WHISTLE_TRILL_RATE_HZ = 13.0    # amplitude warble rate during the trill
+_WHISTLE_TRILL_DEPTH = 0.6       # how deep the warble dips the gain
+_WHISTLE_VIBRATO_RATE_HZ = 5.0   # gentle breath vibrato on the steady notes
+_WHISTLE_VIBRATO_DEPTH_HZ = 12.0
+_WHISTLE_BREAKPOINTS = [
+    # time,  freq,   gain
+    (0.00, 2790.0, 0.0),
+    (0.15, 2790.0, 1.0),
+    (2.10, 2790.0, 1.0),
+    (_WHISTLE_TRILL_START, 3040.0, 0.55),
+    (_WHISTLE_TRILL_END, 3040.0, 0.55),
+    (4.40, 2770.0, 1.0),
+    (6.35, 2770.0, 1.0),
+    (6.50, 3025.0, 1.0),
+    (6.65, 3025.0, 0.0),
+]
 
 
 def _bell_strike() -> np.ndarray:
@@ -74,17 +93,23 @@ def bell_sequence(count: int) -> np.ndarray:
 
 
 def whistle_blast() -> np.ndarray:
-    """Synthesizes a single bosun's-pipe whistle blast (simple hourly mode)."""
-    t = np.linspace(0, _WHISTLE_DURATION, int(SAMPLE_RATE * _WHISTLE_DURATION), endpoint=False)
-    freq = _WHISTLE_FREQ_HZ + _WHISTLE_TRILL_DEPTH_HZ * np.sin(2 * np.pi * _WHISTLE_TRILL_HZ * t)
+    """Synthesizes a bosun's-pipe whistle call (fallback for the real recording)."""
+    times = np.array([bp[0] for bp in _WHISTLE_BREAKPOINTS])
+    freqs_bp = np.array([bp[1] for bp in _WHISTLE_BREAKPOINTS])
+    gains_bp = np.array([bp[2] for bp in _WHISTLE_BREAKPOINTS])
+
+    duration = times[-1]
+    t = np.linspace(0, duration, int(SAMPLE_RATE * duration), endpoint=False)
+    freq = np.interp(t, times, freqs_bp)
+    gain = np.interp(t, times, gains_bp)
+
+    in_trill = (t >= _WHISTLE_TRILL_START) & (t <= _WHISTLE_TRILL_END)
+    vibrato = _WHISTLE_VIBRATO_DEPTH_HZ * np.sin(2 * np.pi * _WHISTLE_VIBRATO_RATE_HZ * t)
+    freq = freq + np.where(in_trill, 0.0, vibrato)
+
+    tremolo = 0.5 * (1 - np.cos(2 * np.pi * _WHISTLE_TRILL_RATE_HZ * t))
+    gain = gain * np.where(in_trill, 1.0 - _WHISTLE_TRILL_DEPTH * tremolo, 1.0)
+
     phase = 2 * np.pi * np.cumsum(freq) / SAMPLE_RATE
-    wave = np.sin(phase)
-
-    attack_samples = int(SAMPLE_RATE * 0.05)
-    release_samples = int(SAMPLE_RATE * 0.15)
-    envelope = np.ones_like(t)
-    envelope[:attack_samples] = np.linspace(0, 1, attack_samples)
-    envelope[-release_samples:] = np.linspace(1, 0, release_samples)
-
-    wave *= envelope
+    wave = np.sin(phase) * gain
     return (wave / np.max(np.abs(wave))).astype(np.float32)
