@@ -18,6 +18,7 @@ _BELL_PARTIALS = [
 ]
 
 _STRIKE_DURATION = 1.4   # seconds of ring-out per bell strike
+_STRIKE_RELEASE = 0.4    # tail of the strike eased down to silence, avoiding a click
 _PAIR_GAP = 0.28          # gap between the two dings within a pair
 _GROUP_GAP = 0.55         # gap between pairs (or before a trailing single)
 
@@ -36,6 +37,13 @@ def _bell_strike() -> np.ndarray:
     # Fast attack so the strike lands as a percussive clang, not a click.
     attack_samples = int(SAMPLE_RATE * 0.003)
     wave[:attack_samples] *= np.linspace(0, 1, attack_samples)
+
+    # The exponential decay is still well above silence when the buffer ends,
+    # so ease the tail down to zero (raised-cosine) instead of hard-cutting it.
+    release_samples = int(SAMPLE_RATE * _STRIKE_RELEASE)
+    fade = 0.5 * (1 + np.cos(np.linspace(0, np.pi, release_samples)))
+    wave[-release_samples:] *= fade
+
     return wave / np.max(np.abs(wave))
 
 
